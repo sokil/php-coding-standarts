@@ -1,0 +1,38 @@
+#!/bin/bash
+
+###########################################################################
+# Add issue number to commit message                                      #
+###########################################################################
+
+COMMIT_MESSAGE_FILE_PATH=$1
+COMMIT_MODE=$2 # 'message' for -m, 'template' for -t, 'merge', 'squash', 'commit' for amend
+COMMIT_MESSAGE=`cat $COMMIT_MESSAGE_FILE_PATH`
+
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ ! $BRANCH_NAME =~ ^(master|main|trunk)$ ]]; then
+  # Branch pattern: YYYMMDD-{author}-{ISSUE_PROJECT}-{ISSUE_NUMBER}-{DESCRIPTION}
+  BRANCH_NAME_PATTERN="^20[0-9]{6}-[a-z]{3,20}-[A-Z]{2,20}-[0-9]{1,10}-[a-zA-Z0-9_\-]{1,100}$"
+
+  if [[ ! $BRANCH_NAME =~ $BRANCH_NAME_PATTERN ]]; then
+      echo -e "\033[0;30m\033[41mCan not commit. Invalid branch name\033[0m"
+      exit 1
+  fi
+
+  ISSUE_NUMBER=$(echo $BRANCH_NAME | awk -F'-' '{print $3 "-" $4}')
+  ISSUE_SUBJECT=$(echo $BRANCH_NAME | awk -F'-' '{print $5}' | sed 's/_/ /g')
+
+  if [ "$COMMIT_MODE" = "message" ]; then
+    echo -n "[$ISSUE_NUMBER][$ISSUE_SUBJECT]: " > $COMMIT_MESSAGE_FILE_PATH
+    echo $COMMIT_MESSAGE >> $COMMIT_MESSAGE_FILE_PATH
+  else
+    firstLine=`head -n1 $COMMIT_MESSAGE_FILE_PATH`
+
+    # We check the fist line of the commit message file.
+    # If it's an empty string then user didn't use `git commit --amend` so we can fill the commit msg file
+    if [ -z "$firstLine" ]; then
+      echo "[#$ISSUE_NUMBER][$ISSUE_SUBJECT] - " > $COMMIT_MESSAGE_FILE_PATH
+    fi
+  fi
+fi
+

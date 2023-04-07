@@ -1,0 +1,32 @@
+{
+    "name": "sokil/php-coding-standarts",
+    "description": "General coding standards for PHP projects",
+    "type": "phpcodesniffer-standard",
+    "require": {
+        "squizlabs/php_codesniffer": "^3.6",
+        "slevomat/coding-standard": "^7.0",
+        "vimeo/psalm": "^4.23 | ^5.4",
+        "php": ">=7.3"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Sokil\\CodingStandard\\": "src/"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "Sokil\\CodingStandard\\GitHook\\GitHookInstallerComposerEventListener::installGitHooks"
+        ],
+        "post-update-cmd": [
+            "Sokil\\CodingStandard\\GitHook\\GitHookInstallerComposerEventListener::installGitHooks"
+        ],
+        "check-style": "./vendor/bin/phpcs",
+        "fix-style": "./vendor/bin/phpcbf"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

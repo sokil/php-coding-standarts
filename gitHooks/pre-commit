@@ -1,0 +1,31 @@
+#!/bin/bash
+
+###########################################################################
+# Check PHP Syntax errors                                                 #
+###########################################################################
+
+PROJECT_DIR=$(readlink -f $(dirname $(readlink -f $0))/../..)
+
+# find php files that ready to commit
+MODIFIED_PHP_FILE_LIST=$(git diff --name-only --cached | grep -e ".php$")
+
+if [[ -n $MODIFIED_PHP_FILE_LIST ]]; then
+  echo -e "Checking syntax errors in \033[1;37m$PROJECT_DIR\033[0m ..."
+
+  ERROR_MESSAGE_LIST=""
+  for phpFilePath in $MODIFIED_PHP_FILE_LIST; do
+    echo $PROJECT_DIR/$phpFilePath
+    ERROR_MESSAGE=$(php -l "$PROJECT_DIR/$phpFilePath" 2>&1 | grep "PHP Parse error")
+    if [[ -n $ERROR_MESSAGE ]]; then
+      ERROR_MESSAGE_LIST="$ERROR_MESSAGE_LIST Syntax error in file \033[1;32m$phpFilePath\033[0m:\n$ERROR_MESSAGE\n"
+    fi
+  done
+
+  if [[ -n $ERROR_MESSAGE_LIST ]]; then
+    echo -e "\n\033[0;30m\033[41mPHP syntax errors found:\033[0m\n"
+    echo -e $ERROR_MESSAGE_LIST
+    exit 1
+  else
+    echo -e "\033[0;32mNo syntax errors found\033[0m\n"
+  fi
+fi
